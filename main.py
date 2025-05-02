@@ -1,17 +1,7 @@
 import cv2
 import numpy as np
 
-# Start video capture (0 = default webcam)
 cap = cv2.VideoCapture(0)
-
-# Black color range (for obstacles)
-lower_black = np.array([0, 0, 0])
-upper_black = np.array([180, 255, 30])
-
-
-# Define color range for detection (let's use red for now)
-lower_red = np.array([0, 120, 70])
-upper_red = np.array([10, 255, 255])
 
 while True:
     ret, frame = cap.read()
@@ -19,53 +9,55 @@ while True:
         break
 
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-    mask = cv2.inRange(hsv, lower_red, upper_red)
 
-    # Find contours in the red mask
-    contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    # === COLOR DETECTION ===
+    lower_red = np.array([0, 120, 70])
+    upper_red = np.array([10, 255, 255])
+    mask_red = cv2.inRange(hsv, lower_red, upper_red)
 
-    direction = "Searching..."
+    lower_green = np.array([36, 100, 100])
+    upper_green = np.array([86, 255, 255])
+    mask_green = cv2.inRange(hsv, lower_green, upper_green)
 
-    if contours:
-        # Get the largest red object
-        largest = max(contours, key=cv2.contourArea)
-        x, y, w, h = cv2.boundingRect(largest)
-        cx = x + w // 2
+    lower_blue = np.array([94, 80, 2])
+    upper_blue = np.array([126, 255, 255])
+    mask_blue = cv2.inRange(hsv, lower_blue, upper_blue)
 
-        # Draw rectangle and center point
-        cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
-        cv2.circle(frame, (cx, y + h // 2), 5, (255, 255, 255), -1)
+    red_area = cv2.countNonZero(mask_red)
+    green_area = cv2.countNonZero(mask_green)
+    blue_area = cv2.countNonZero(mask_blue)
 
-        # Decide direction based on object position
-        if cx < 200:
-            direction = "MOVE LEFT"
-        elif cx > 440:
-            direction = "MOVE RIGHT"
-        else:
-            direction = "MOVE FORWARD"
+    # === OBSTACLE DETECTION ===
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+    edges = cv2.Canny(blurred, 50, 150)
 
-    # Show direction text
-    cv2.putText(frame, direction, (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 2)
+    height, width = edges.shape
+    roi = edges[int(height*0.6):height, int(width*0.3):int(width*0.7)]
+    obstacle_edges = cv2.countNonZero(roi)
 
-    cv2.imshow("Original", frame)
-    cv2.imshow("Red Mask", mask)
+    # Visual Debug: Show ROI
+    cv2.rectangle(frame, (int(width*0.3), int(height*0.6)), (int(width*0.7), height), (255, 255, 0), 2)
 
-    # Detect obstacles (black areas)
-    black_mask = cv2.inRange(hsv, lower_black, upper_black)
-    black_contours, _ = cv2.findContours(black_mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    # === DECISION LOGIC ===
+    if red_area > 2000:
+        action = "STOP"
+    elif obstacle_edges > 500:
+        action = "AVOID OBSTACLE"
+    elif green_area > 2000:
+        action = "MOVE FORWARD"
+    elif blue_area > 2000:
+        action = "TURN"
+    else:
+        action = "SEARCHING..."
 
-    # If obstacle detected, override direction
-    if black_contours:
-        largest_obstacle = max(black_contours, key=cv2.contourArea)
-        area = cv2.contourArea(largest_obstacle)
-        if area > 500:
-            direction = "STOP - Obstacle!"
+    # Show action
+    cv2.putText(frame, action, (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.1, (255, 255, 255), 2)
 
-    cv2.imshow("Obstacle Mask", black_mask)
+    cv2.imshow("AI Agent View", frame)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
-
 
 cap.release()
 cv2.destroyAllWindows()
