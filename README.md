@@ -1,43 +1,58 @@
-# 🔴 AI Color Tracking Agent with Obstacle Detection
+# 🤖 Color Tracking AI Agent
 
-This is a beginner-friendly AI agent built with Python and OpenCV. The agent can:
+This is a real-time AI agent built with Python and OpenCV. It uses computer vision to detect colors (red, green, blue) and identify obstacles based on edge detection. The agent then makes decisions like STOP, MOVE FORWARD, TURN, or AVOID OBSTACLE — simulating how a self-driving robot might behave in the real world.
 
-- Track a red object using computer vision
-- Simulate basic decision-making
-- Detect black obstacles and stop when needed
+---
 
-Perfect starting point for robotics or self-driving applications!
+##  Features
 
-## 🚀 Features
+- 🎯 Color Detection (Red = Stop, Green = Go, Blue = Turn)
+-  Obstacle Detection (Edge-based ROI scanning)
+-  Simple Decision Logic for autonomous behavior
+-  Real-time camera feed with action overlays
+-  Easy to extend into a real robot using Arduino or Raspberry Pi
 
-- Color-based object tracking (red)
-- Obstacle detection (black)
-- Simulated decision logic: Move left, right, forward, stop
-- Real-time camera feed using OpenCV
+---
 
-## 🛠️ Requirements
+##  How It Works
 
-- Python 3.x
+- Uses OpenCV to capture video from your webcam.
+- Converts frames to HSV color space for accurate color detection.
+- Detects edges in a Region of Interest (ROI) to find obstacles.
+- Based on the area of detected colors and obstacles, it decides what action to take.
+- Displays the chosen action on the video feed.
+
+---
+
+## 🎮 Controls
+
+- Press `Q` to quit the live video.
+
+---
+
+## 🧪 Requirements
+
+- Python 3.7+
 - OpenCV
+- NumPy
 
-Install dependencies:
+Install with:
 
 ```bash
-pip install -r requirements.txt
+pip install opencv-python numpy
 
-## How to Run
+## Run It
 
-python ai_agent.py
+python color_tracking_agent.py
 
-## What's Next?
-This agent is the foundation for:
+## 💡Future Ideas
+Add motor control to move a robot in real life.
 
-Line-following robots
+Add sound feedback ("Beep" on STOP, etc).
 
-Self-driving car logic
+Integrate with voice commands or remote control.
 
-AI + Electronics + Robotics
+Train an ML model for smarter decisions.
 
-Built with by Leon Taderera
-
-# Color-Tracking-Agent
+🙌 Created By
+Leon Taderera — Built as part of a real-world robotics and AI learning journey.
